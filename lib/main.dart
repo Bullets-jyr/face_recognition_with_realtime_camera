@@ -1,125 +1,441 @@
+import 'package:camera/camera.dart';
+import 'package:face_recognition_with_realtime_camera/ml/recognition.dart';
 import 'package:flutter/material.dart';
+import 'package:image/image.dart' as img;
 
-void main() {
-  runApp(const MyApp());
+late List<CameraDescription> cameras;
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  cameras = await availableCameras();
+  runApp(
+    MyApp(),
+  );
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+  MyHomePage({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  _MyHomePageState createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  dynamic controller;
+  bool isBusy = false;
+  late Size size;
+  late CameraDescription description = cameras[1];
+  CameraLensDirection camDirec = CameraLensDirection.front;
+  late List<Recognition> recognitions = [];
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+  //TODO declare face detector
+
+  //TODO declare face recognizer
+
+  @override
+  void initState() {
+    super.initState();
+
+    //TODO initialize face detector
+
+    //TODO initialize face recognizer
+
+    //TODO initialize camera footage
+    initializeCamera();
+  }
+
+  //TODO code to initialize the camera feed
+  initializeCamera() async {
+    controller = CameraController(description, ResolutionPreset.medium);
+    await controller.initialize().then((_) {
+      if (!mounted) {
+        return;
+      }
+      controller.startImageStream((image) => {
+            if (!isBusy)
+              {isBusy = true, frame = image, doFaceDetectionOnFrame()}
+          });
     });
+  }
+
+  //TODO close all resources
+  @override
+  void dispose() {
+    controller?.dispose();
+    super.dispose();
+  }
+
+  //TODO face detection on a frame
+  dynamic _scanResults;
+  CameraImage? frame;
+
+  doFaceDetectionOnFrame() async {
+    //TODO convert frame into InputImage format
+
+    //TODO pass InputImage to face detection model and detect faces
+
+    //TODO perform face recognition on detected faces
+
+    setState(() {
+      isBusy = false;
+    });
+  }
+
+  img.Image? image;
+  bool register = false;
+
+  // TODO perform Face Recognition
+  // performFaceRecognition(List<Face> faces) async {
+  //   recognitions.clear();
+  //
+  //   //TODO convert CameraImage to Image and rotate it so that our frame will be in a portrait
+  //   image = convertYUV420ToImage(frame!);
+  //   image =img.copyRotate(image!, angle: camDirec == CameraLensDirection.front?270:90);
+  //
+  //   for (Face face in faces) {
+  //     Rect faceRect = face.boundingBox;
+  //     //TODO crop face
+  //     img.Image croppedFace = img.copyCrop(image!, x:faceRect.left.toInt(),y:faceRect.top.toInt(),width:faceRect.width.toInt(),height:faceRect.height.toInt());
+  //
+  //     //TODO pass cropped face to face recognition model
+  //
+  //
+  //     //TODO show face registration dialogue
+  //
+  //
+  //   }
+  //
+  //   setState(() {
+  //     isBusy  = false;
+  //     _scanResults = recognitions;
+  //   });
+  //
+  // }
+
+  //TODO Face Registration Dialogue
+  // TextEditingController textEditingController = TextEditingController();
+  // showFaceRegistrationDialogue(img.Image croppedFace, Recognition recognition){
+  //   showDialog(
+  //     context: context,
+  //     builder: (ctx) => AlertDialog(
+  //       title: const Text("Face Registration",textAlign: TextAlign.center),alignment: Alignment.center,
+  //       content: SizedBox(
+  //         height: 340,
+  //         child: Column(
+  //           crossAxisAlignment: CrossAxisAlignment.center,
+  //           children: [
+  //             const SizedBox(height: 20,),
+  //             Image.memory(Uint8List.fromList(img.encodeBmp(croppedFace!)),width: 200,height: 200,),
+  //             SizedBox(
+  //               width: 200,
+  //               child: TextField(
+  //                   controller: textEditingController,
+  //                   decoration: const InputDecoration( fillColor: Colors.white, filled: true,hintText: "Enter Name")
+  //               ),
+  //             ),
+  //             const SizedBox(height: 10,),
+  //             ElevatedButton(
+  //                 onPressed: () {
+  //                   recognizer.registerFaceInDB(textEditingController.text, recognition.embeddings);
+  //                   textEditingController.text = "";
+  //                   Navigator.pop(context);
+  //                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+  //                     content: Text("Face Registered"),
+  //                   ));
+  //                 },style: ElevatedButton.styleFrom(primary:Colors.blue,minimumSize: const Size(200,40)),
+  //                 child: const Text("Register"))
+  //           ],
+  //         ),
+  //       ),contentPadding: EdgeInsets.zero,
+  //     ),
+  //   );
+  // }
+
+  // TODO method to convert CameraImage to Image
+  // img.Image convertYUV420ToImage(CameraImage cameraImage) {
+  //   final width = cameraImage.width;
+  //   final height = cameraImage.height;
+  //
+  //   final yRowStride = cameraImage.planes[0].bytesPerRow;
+  //   final uvRowStride = cameraImage.planes[1].bytesPerRow;
+  //   final uvPixelStride = cameraImage.planes[1].bytesPerPixel!;
+  //
+  //   final image = img.Image(width:width, height:height);
+  //
+  //   for (var w = 0; w < width; w++) {
+  //     for (var h = 0; h < height; h++) {
+  //       final uvIndex =
+  //           uvPixelStride * (w / 2).floor() + uvRowStride * (h / 2).floor();
+  //       final index = h * width + w;
+  //       final yIndex = h * yRowStride + w;
+  //
+  //       final y = cameraImage.planes[0].bytes[yIndex];
+  //       final u = cameraImage.planes[1].bytes[uvIndex];
+  //       final v = cameraImage.planes[2].bytes[uvIndex];
+  //
+  //       image.data!.setPixelR(w, h, yuv2rgb(y, u, v));//= yuv2rgb(y, u, v);
+  //     }
+  //   }
+  //   return image;
+  // }
+  // int yuv2rgb(int y, int u, int v) {
+  //   // Convert yuv pixel to rgb
+  //   var r = (y + v * 1436 / 1024 - 179).round();
+  //   var g = (y - u * 46549 / 131072 + 44 - v * 93604 / 131072 + 91).round();
+  //   var b = (y + u * 1814 / 1024 - 227).round();
+  //
+  //   // Clipping RGB values to be inside boundaries [ 0 , 255 ]
+  //   r = r.clamp(0, 255);
+  //   g = g.clamp(0, 255);
+  //   b = b.clamp(0, 255);
+  //
+  //   return 0xff000000 |
+  //   ((b << 16) & 0xff0000) |
+  //   ((g << 8) & 0xff00) |
+  //   (r & 0xff);
+  // }
+
+  // //TODO convert CameraImage to InputImage
+  //
+  // final _orientations = {
+  //   DeviceOrientation.portraitUp: 0,
+  //   DeviceOrientation.landscapeLeft: 90,
+  //   DeviceOrientation.portraitDown: 180,
+  //   DeviceOrientation.landscapeRight: 270,
+  // };
+  //
+  //
+  // InputImage? getInputImage() {
+  //   final camera =
+  //   camDirec == CameraLensDirection.front ? cameras[1] : cameras[0];
+  //   final sensorOrientation = camera.sensorOrientation;
+  //
+  //   InputImageRotation? rotation;
+  //   if (Platform.isIOS) {
+  //     rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+  //   } else if (Platform.isAndroid) {
+  //     var rotationCompensation =
+  //     _orientations[controller!.value.deviceOrientation];
+  //     if (rotationCompensation == null) return null;
+  //     if (camera.lensDirection == CameraLensDirection.front) {
+  //       // front-facing
+  //       rotationCompensation = (sensorOrientation + rotationCompensation) % 360;
+  //     } else {
+  //       // back-facing
+  //       rotationCompensation =
+  //           (sensorOrientation - rotationCompensation + 360) % 360;
+  //     }
+  //     rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
+  //   }
+  //   if (rotation == null) return null;
+  //
+  //   final format = InputImageFormatValue.fromRawValue(frame!.format.raw);
+  //   if (format == null ||
+  //       (Platform.isAndroid && format != InputImageFormat.nv21) ||
+  //       (Platform.isIOS && format != InputImageFormat.bgra8888)) return null;
+  //
+  //   if (frame!.planes.length != 1) return null;
+  //   final plane = frame!.planes.first;
+  //
+  //   return InputImage.fromBytes(
+  //     bytes: plane.bytes,
+  //     metadata: InputImageMetadata(
+  //       size: Size(frame!.width.toDouble(), frame!.height.toDouble()),
+  //       rotation: rotation,
+  //       format: format,
+  //       bytesPerRow: plane.bytesPerRow,
+  //     ),
+  //   );
+  // }
+
+  // TODO Show rectangles around detected faces
+  // Widget buildResult() {
+  //   if (_scanResults == null ||
+  //       controller == null ||
+  //       !controller.value.isInitialized) {
+  //     return const Center(child: Text('Camera is not initialized'));
+  //   }
+  //   final Size imageSize = Size(
+  //     controller.value.previewSize!.height,
+  //     controller.value.previewSize!.width,
+  //   );
+  //   CustomPainter painter = FaceDetectorPainter(imageSize, _scanResults, camDirec);
+  //   return CustomPaint(
+  //     painter: painter,
+  //   );
+  // }
+
+  //TODO toggle camera direction
+  void _toggleCameraDirection() async {
+    if (camDirec == CameraLensDirection.back) {
+      camDirec = CameraLensDirection.front;
+      description = cameras[1];
+    } else {
+      camDirec = CameraLensDirection.back;
+      description = cameras[0];
+    }
+    await controller.stopImageStream();
+    setState(() {
+      controller;
+    });
+
+    initializeCamera();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+    List<Widget> stackChildren = [];
+    size = MediaQuery.of(context).size;
+    if (controller != null) {
+      //TODO View for displaying the live camera footage
+      stackChildren.add(
+        Positioned(
+          top: 0.0,
+          left: 0.0,
+          width: size.width,
+          height: size.height,
+          child: Container(
+            child: (controller.value.isInitialized)
+                ? AspectRatio(
+                    aspectRatio: controller.value.aspectRatio,
+                    child: CameraPreview(controller),
+                  )
+                : Container(),
+          ),
+        ),
+      );
+
+      //TODO View for displaying rectangles around detected aces
+      // stackChildren.add(
+      //   Positioned(
+      //       top: 0.0,
+      //       left: 0.0,
+      //       width: size.width,
+      //       height: size.height,
+      //       child: buildResult()),
+      // );
+    }
+
+    //TODO View for displaying the bar to switch camera direction or for registering faces
+    stackChildren.add(Positioned(
+      top: size.height - 140,
+      left: 0,
+      width: size.width,
+      height: 80,
+      child: Card(
+        margin: const EdgeInsets.only(left: 20, right: 20),
+        color: Colors.blue,
+        child: Center(
+          child: Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.cached,
+                        color: Colors.white,
+                      ),
+                      iconSize: 40,
+                      color: Colors.black,
+                      onPressed: () {
+                        _toggleCameraDirection();
+                      },
+                    ),
+                    Container(
+                      width: 30,
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.face_retouching_natural,
+                        color: Colors.white,
+                      ),
+                      iconSize: 40,
+                      color: Colors.black,
+                      onPressed: () {},
+                    )
+                  ],
+                ),
+              ],
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+          ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    ));
+
+    return SafeArea(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: Container(
+            margin: const EdgeInsets.only(top: 0),
+            color: Colors.black,
+            child: Stack(
+              children: stackChildren,
+            )),
+      ),
     );
   }
 }
+
+// class FaceDetectorPainter extends CustomPainter {
+//   FaceDetectorPainter(this.absoluteImageSize, this.faces, this.camDire2);
+//
+//   final Size absoluteImageSize;
+//   final List<Face> faces;
+//   CameraLensDirection camDire2;
+//
+//   @override
+//   void paint(Canvas canvas, Size size) {
+//     final double scaleX = size.width / absoluteImageSize.width;
+//     final double scaleY = size.height / absoluteImageSize.height;
+//
+//     final Paint paint = Paint()
+//       ..style = PaintingStyle.stroke
+//       ..strokeWidth = 2.0
+//       ..color = Colors.indigoAccent;
+//
+//     for (Face face in faces) {
+//       canvas.drawRect(
+//         Rect.fromLTRB(
+//           camDire2 == CameraLensDirection.front
+//               ? (absoluteImageSize.width - face.boundingBox.right) * scaleX
+//               : face.boundingBox.left * scaleX,
+//           face.boundingBox.top * scaleY,
+//           camDire2 == CameraLensDirection.front
+//               ? (absoluteImageSize.width - face.boundingBox.left) * scaleX
+//               : face.boundingBox.right * scaleX,
+//           face.boundingBox.bottom * scaleY,
+//         ),
+//         paint,
+//       );
+//
+//       // TextSpan span = TextSpan(
+//       //     style: const TextStyle(color: Colors.white, fontSize: 20),
+//       //     text: "${face.name}  ${face.distance.toStringAsFixed(2)}");
+//       // TextPainter tp = TextPainter(
+//       //     text: span,
+//       //     textAlign: TextAlign.left,
+//       //     textDirection: TextDirection.ltr);
+//       // tp.layout();
+//       // tp.paint(canvas, Offset(face.location.left*scaleX, face.location.top*scaleY));
+//     }
+//
+//   }
+//
+//   @override
+//   bool shouldRepaint(FaceDetectorPainter oldDelegate) {
+//     return true;
+//   }
+// }
