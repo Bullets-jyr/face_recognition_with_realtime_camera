@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:face_recognition_with_realtime_camera/ml/recognition.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:image/image.dart' as img;
 
 late List<CameraDescription> cameras;
@@ -38,6 +42,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late List<Recognition> recognitions = [];
 
   //TODO declare face detector
+  late FaceDetector faceDetector;
 
   //TODO declare face recognizer
 
@@ -46,6 +51,13 @@ class _MyHomePageState extends State<MyHomePage> {
     super.initState();
 
     //TODO initialize face detector
+    var options = FaceDetectorOptions(
+      // performanceMode: FaceDetectorMode.accurate,
+      performanceMode: FaceDetectorMode.fast,
+    );
+    faceDetector = FaceDetector(
+      options: options,
+    );
 
     //TODO initialize face recognizer
 
@@ -80,12 +92,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
   doFaceDetectionOnFrame() async {
     //TODO convert frame into InputImage format
+    print('dfd');
+    InputImage? inputImage = getInputImage();
 
     //TODO pass InputImage to face detection model and detect faces
+    List<Face> faces = await faceDetector.processImage(inputImage!);
+    print("fl="+faces.length.toString());
 
     //TODO perform face recognition on detected faces
+    // performFaceRecognition(faces);
 
     setState(() {
+      _scanResults = faces;
       isBusy = false;
     });
   }
@@ -204,58 +222,58 @@ class _MyHomePageState extends State<MyHomePage> {
   //   (r & 0xff);
   // }
 
-  // //TODO convert CameraImage to InputImage
-  //
-  // final _orientations = {
-  //   DeviceOrientation.portraitUp: 0,
-  //   DeviceOrientation.landscapeLeft: 90,
-  //   DeviceOrientation.portraitDown: 180,
-  //   DeviceOrientation.landscapeRight: 270,
-  // };
-  //
-  //
-  // InputImage? getInputImage() {
-  //   final camera =
-  //   camDirec == CameraLensDirection.front ? cameras[1] : cameras[0];
-  //   final sensorOrientation = camera.sensorOrientation;
-  //
-  //   InputImageRotation? rotation;
-  //   if (Platform.isIOS) {
-  //     rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
-  //   } else if (Platform.isAndroid) {
-  //     var rotationCompensation =
-  //     _orientations[controller!.value.deviceOrientation];
-  //     if (rotationCompensation == null) return null;
-  //     if (camera.lensDirection == CameraLensDirection.front) {
-  //       // front-facing
-  //       rotationCompensation = (sensorOrientation + rotationCompensation) % 360;
-  //     } else {
-  //       // back-facing
-  //       rotationCompensation =
-  //           (sensorOrientation - rotationCompensation + 360) % 360;
-  //     }
-  //     rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
-  //   }
-  //   if (rotation == null) return null;
-  //
-  //   final format = InputImageFormatValue.fromRawValue(frame!.format.raw);
-  //   if (format == null ||
-  //       (Platform.isAndroid && format != InputImageFormat.nv21) ||
-  //       (Platform.isIOS && format != InputImageFormat.bgra8888)) return null;
-  //
-  //   if (frame!.planes.length != 1) return null;
-  //   final plane = frame!.planes.first;
-  //
-  //   return InputImage.fromBytes(
-  //     bytes: plane.bytes,
-  //     metadata: InputImageMetadata(
-  //       size: Size(frame!.width.toDouble(), frame!.height.toDouble()),
-  //       rotation: rotation,
-  //       format: format,
-  //       bytesPerRow: plane.bytesPerRow,
-  //     ),
-  //   );
-  // }
+  //TODO convert CameraImage to InputImage
+
+  final _orientations = {
+    DeviceOrientation.portraitUp: 0,
+    DeviceOrientation.landscapeLeft: 90,
+    DeviceOrientation.portraitDown: 180,
+    DeviceOrientation.landscapeRight: 270,
+  };
+
+
+  InputImage? getInputImage() {
+    final camera =
+    camDirec == CameraLensDirection.front ? cameras[1] : cameras[0];
+    final sensorOrientation = camera.sensorOrientation;
+
+    InputImageRotation? rotation;
+    if (Platform.isIOS) {
+      rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
+    } else if (Platform.isAndroid) {
+      var rotationCompensation =
+      _orientations[controller!.value.deviceOrientation];
+      if (rotationCompensation == null) return null;
+      if (camera.lensDirection == CameraLensDirection.front) {
+        // front-facing
+        rotationCompensation = (sensorOrientation + rotationCompensation) % 360;
+      } else {
+        // back-facing
+        rotationCompensation =
+            (sensorOrientation - rotationCompensation + 360) % 360;
+      }
+      rotation = InputImageRotationValue.fromRawValue(rotationCompensation);
+    }
+    if (rotation == null) return null;
+
+    final format = InputImageFormatValue.fromRawValue(frame!.format.raw);
+    if (format == null ||
+        (Platform.isAndroid && format != InputImageFormat.nv21) ||
+        (Platform.isIOS && format != InputImageFormat.bgra8888)) return null;
+
+    if (frame!.planes.length != 1) return null;
+    final plane = frame!.planes.first;
+
+    return InputImage.fromBytes(
+      bytes: plane.bytes,
+      metadata: InputImageMetadata(
+        size: Size(frame!.width.toDouble(), frame!.height.toDouble()),
+        rotation: rotation,
+        format: format,
+        bytesPerRow: plane.bytesPerRow,
+      ),
+    );
+  }
 
   // TODO Show rectangles around detected faces
   // Widget buildResult() {
