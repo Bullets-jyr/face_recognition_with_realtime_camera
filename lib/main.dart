@@ -134,62 +134,92 @@ class _MyHomePageState extends State<MyHomePage> {
 
       //TODO pass cropped face to face recognition model
       Recognition recognition = recognizer.recognize(croppedFace!, faceRect);
-      if(recognition.distance>1.0){
+      if (recognition.distance > 1.0) {
         recognition.name = "Unknown";
       }
       recognitions.add(recognition);
 
       //TODO show face registration dialogue
-      if(register){
-        showFaceRegistrationDialogue(croppedFace!,recognition);
+      if (register) {
+        showFaceRegistrationDialogue(croppedFace!, recognition);
         register = false;
       }
     }
 
     setState(() {
       isBusy = false;
-      // _scanResults = recognitions;
+      _scanResults = recognitions;
     });
   }
 
   //TODO Face Registration Dialogue
-  // TextEditingController textEditingController = TextEditingController();
-  // showFaceRegistrationDialogue(img.Image croppedFace, Recognition recognition){
-  //   showDialog(
-  //     context: context,
-  //     builder: (ctx) => AlertDialog(
-  //       title: const Text("Face Registration",textAlign: TextAlign.center),alignment: Alignment.center,
-  //       content: SizedBox(
-  //         height: 340,
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.center,
-  //           children: [
-  //             const SizedBox(height: 20,),
-  //             Image.memory(Uint8List.fromList(img.encodeBmp(croppedFace!)),width: 200,height: 200,),
-  //             SizedBox(
-  //               width: 200,
-  //               child: TextField(
-  //                   controller: textEditingController,
-  //                   decoration: const InputDecoration( fillColor: Colors.white, filled: true,hintText: "Enter Name")
-  //               ),
-  //             ),
-  //             const SizedBox(height: 10,),
-  //             ElevatedButton(
-  //                 onPressed: () {
-  //                   recognizer.registerFaceInDB(textEditingController.text, recognition.embeddings);
-  //                   textEditingController.text = "";
-  //                   Navigator.pop(context);
-  //                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-  //                     content: Text("Face Registered"),
-  //                   ));
-  //                 },style: ElevatedButton.styleFrom(primary:Colors.blue,minimumSize: const Size(200,40)),
-  //                 child: const Text("Register"))
-  //           ],
-  //         ),
-  //       ),contentPadding: EdgeInsets.zero,
-  //     ),
-  //   );
-  // }
+  TextEditingController textEditingController = TextEditingController();
+
+  showFaceRegistrationDialogue(img.Image croppedFace, Recognition recognition) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Face Registration", textAlign: TextAlign.center),
+        alignment: Alignment.center,
+        content: SizedBox(
+          height: 340,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              const SizedBox(
+                height: 20,
+              ),
+              Image.memory(
+                Uint8List.fromList(
+                  img.encodeBmp(
+                    croppedFace!,
+                  ),
+                ),
+                width: 200,
+                height: 200,
+              ),
+              SizedBox(
+                width: 200,
+                child: TextField(
+                  controller: textEditingController,
+                  decoration: const InputDecoration(
+                    fillColor: Colors.white,
+                    filled: true,
+                    hintText: "Enter Name",
+                  ),
+                ),
+              ),
+              const SizedBox(
+                height: 10,
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  recognizer.registerFaceInDB(
+                    textEditingController.text,
+                    recognition.embeddings,
+                  );
+                  textEditingController.text = "";
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Face Registered"),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  // primary: Colors.blue,
+                  foregroundColor: Colors.blue,
+                  minimumSize: const Size(200, 40),
+                ),
+                child: const Text("Register"),
+              ),
+            ],
+          ),
+        ),
+        contentPadding: EdgeInsets.zero,
+      ),
+    );
+  }
 
   // TODO method to convert CameraImage to Image
   img.Image convertYUV420ToImage(CameraImage cameraImage) {
@@ -397,7 +427,11 @@ class _MyHomePageState extends State<MyHomePage> {
                         ),
                         iconSize: 40,
                         color: Colors.black,
-                        onPressed: () {},
+                        onPressed: () {
+                          setState(() {
+                            register = true;
+                          });
+                        },
                       )
                     ],
                   ),
