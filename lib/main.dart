@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:camera/camera.dart';
 import 'package:face_recognition_with_realtime_camera/ml/recognition.dart';
+import 'package:face_recognition_with_realtime_camera/ml/recognizer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
@@ -45,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
   late FaceDetector faceDetector;
 
   //TODO declare face recognizer
+  late Recognizer recognizer;
 
   @override
   void initState() {
@@ -60,6 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     //TODO initialize face recognizer
+    recognizer = Recognizer();
 
     //TODO initialize camera footage
     initializeCamera();
@@ -130,8 +133,17 @@ class _MyHomePageState extends State<MyHomePage> {
           height: faceRect.height.toInt());
 
       //TODO pass cropped face to face recognition model
+      Recognition recognition = recognizer.recognize(croppedFace!, faceRect);
+      if(recognition.distance>1.0){
+        recognition.name = "Unknown";
+      }
+      recognitions.add(recognition);
 
       //TODO show face registration dialogue
+      if(register){
+        showFaceRegistrationDialogue(croppedFace!,recognition);
+        register = false;
+      }
     }
 
     setState(() {
