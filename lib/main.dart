@@ -97,7 +97,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     //TODO pass InputImage to face detection model and detect faces
     List<Face> faces = await faceDetector.processImage(inputImage!);
-    print("fl="+faces.length.toString());
+    print("fl=" + faces.length.toString());
 
     //TODO perform face recognition on detected faces
     // performFaceRecognition(faces);
@@ -231,10 +231,9 @@ class _MyHomePageState extends State<MyHomePage> {
     DeviceOrientation.landscapeRight: 270,
   };
 
-
   InputImage? getInputImage() {
     final camera =
-    camDirec == CameraLensDirection.front ? cameras[1] : cameras[0];
+        camDirec == CameraLensDirection.front ? cameras[1] : cameras[0];
     final sensorOrientation = camera.sensorOrientation;
 
     InputImageRotation? rotation;
@@ -242,7 +241,7 @@ class _MyHomePageState extends State<MyHomePage> {
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
     } else if (Platform.isAndroid) {
       var rotationCompensation =
-      _orientations[controller!.value.deviceOrientation];
+          _orientations[controller!.value.deviceOrientation];
       if (rotationCompensation == null) return null;
       if (camera.lensDirection == CameraLensDirection.front) {
         // front-facing
@@ -286,7 +285,8 @@ class _MyHomePageState extends State<MyHomePage> {
       controller.value.previewSize!.height,
       controller.value.previewSize!.width,
     );
-    CustomPainter painter = FaceDetectorPainter(imageSize, _scanResults, camDirec);
+    CustomPainter painter =
+        FaceDetectorPainter(imageSize, _scanResults, camDirec);
     return CustomPaint(
       painter: painter,
     );
@@ -408,11 +408,15 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class FaceDetectorPainter extends CustomPainter {
-  FaceDetectorPainter(this.absoluteImageSize, this.faces, this.camDire2);
-
   final Size absoluteImageSize;
   final List<Face> faces;
   CameraLensDirection camDire2;
+
+  FaceDetectorPainter(
+    this.absoluteImageSize,
+    this.faces,
+    this.camDire2,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -449,7 +453,6 @@ class FaceDetectorPainter extends CustomPainter {
       // tp.layout();
       // tp.paint(canvas, Offset(face.location.left*scaleX, face.location.top*scaleY));
     }
-
   }
 
   @override
